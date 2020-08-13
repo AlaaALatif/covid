@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+        <style>body{ margin:0 100; background:whitesmoke; }</style>
+    </head>
+    <body>
+        <h1>Contaminant Analysis Report</h1>
+
+        <!-- *** Section 1 *** --->
+        <h2>Section 1: General Heatmap of Barcode Read Counts</h2>
+        <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
+src="''' + {{general_hmap}} + '''.embed?width=800&height=550"></iframe>
+        <p>The above figure shows a heatmap of the barcode read counts of all samples for the given run
+        (i.e. sequencing experiment). There is a "contamination column" that indicates whether or not a given
+        sample has potential contamination.</p>
+
+        <!-- *** Section 2 *** --->
+        <h2>Section 2: Heatmap of Barcode Read Counts of Potentially Contaminated Samples Only</h2>
+        <iframe width="1000" height="1000" frameborder="0" seamless="seamless" scrolling="no" \
+src="''' + {{contaminants_hmap}} + '''.embed?width=1000&height=1000"></iframe>
+        <p>The above figure shows a heatmap of the read counts of samples that have been identified as
+        potentially contaminated. This means that their barcode counts contain more than one distinct
+        forward and/or reverse barcodes.</p>
+        <h3>Contaminants Table: Barcode Read Counts of Samples with Potential Contamination</h3>
+        ''' + contaminants_table + '''
+    </body>
+</html>
