@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+        <style>body{ margin:0 100; background:whitesmoke; }</style>
+    </head>
+    <body>
+        <h1>Contaminant Analysis Report</h1>
+        <h2> General Information </h2>
+        <ul>
+          <li>Experiment: {{expt_name}} </li>
+          <li>There are {{num_samples}} samples in this experiment sequencing run. </li>
+          <li>Of those, there are {{num_conts}} samples that have been identified as potentially contaminated.</li>
+        </ul>
+        <!-- *** Section 1 *** --->
+        <h2>Section 1: General Heatmap of Barcode Read Counts</h2>
+        {{general_hmap}}
+        <p>The above figure shows a heatmap of the barcode read counts of all samples for the given run
+        (i.e. sequencing experiment). There is a "contamination column" that indicates whether or not a given
+        sample has potential contamination.</p>
+
+        <!-- *** Section 2 *** --->
+        <h2>Section 2: Heatmap of Barcode Read Counts of Potentially Contaminated Samples Only</h2>
+        {{cont_hmap}}
+        <p>The above figure shows a heatmap of the read counts of samples that have been identified as
+        potentially contaminated. This means that their barcode counts contain more than one distinct
+        forward and/or reverse barcodes.</p>
+        
+        <h2>Section 3: Table of Barcode Read Counts of Samples with Potential Contamination</h2>
+        {{cont_table}}
+    </body>
+</html>
