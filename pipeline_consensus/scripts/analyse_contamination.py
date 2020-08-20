@@ -9,7 +9,8 @@ if __name__ == "__main__":
     # grab user args
     out_pth = Path(snakemake.output)
     expt_pth = out_pth.parent
-    input_pths = [Path(p) for p in snakemake.input]
+    input_pths = [Path(p) for p in snakemake.input.barcodes]
+#     print(input_pths)
     # print(input_pths)
     num_samples = len(input_pths)
     # grab data from each sample
@@ -28,65 +29,27 @@ if __name__ == "__main__":
     cont_table = generate_table(ans, cont_x)
     # number of contaminated samples
     num_conts = len(cont_x)
+    # generate scatter plot of coverage vs mapped reads ratio
+    mapped_pth = Path(snakemake.input.mapping)
+    coverage_pth = Path(snakemake.input.coverage)
+    mapped_df = pd.read_csv(mapped_pth, delimiter='\t')
+    mapped_df['mapped ratio'] = mapped_df['mapped'] / (mapped_df['unmapped']+mapped_df['mapped'])
+    mapped_df['SAMPLE'] = mapped_df['SAMPLE'].apply(lambda x: x.split('/')[-1].split('_')[0])
+    coverage_df = pd.read_csv(coverage_pth, delimiter='\t')
+    coverage_df['SAMPLE'] = coverage_df['SAMPLE'].apply(lambda x: x.split('_')[0])
+    ans = pd.merge(mapped_df, coverage_df, on='SAMPLE', how='inner')[['SAMPLE', 'COVERAGE', 'mapped ratio']]
+    scattr_plot = go.Figure(data=go.Scatter(x=ans['mapped ratio'],
+                                y=ans['COVERAGE'],
+                                mode='markers',
+                                text=ans['SAMPLE'])) # hover text goes here
+
+    scattr_plot.update_layout(title='Coverage versus Mapped Reads Ratio',
+                  xaxis_title="Ratio of Mapped Reads",
+                  yaxis_title="Coverage",
+                  template='plotly',
+                  height=800)
     # generate html string
-    html_output = generate_html(general_hmap, cont_hmap, cont_table,
+    html_output = generate_html(general_hmap, cont_hmap, cont_table, scattr_plot,
                                 num_samples, num_conts, out_pth)
     # save report to file
     save_html(html_output, out_pth)
-#     # grab data from each sample
-#     ans = load_all_data(input_pths)
-#     # generate paired reads
-#     ans['paired_read'] = ans.apply(lambda x: x['forward_barcode'] + '-' + x['reverse_barcode'], axis=1)
-#     # compute log of read counts 
-#     ans['log_count'] = ans['paired_read_count'].apply(lambda x: np.log(x+1))
-#     # generate heatmap matrix of (logged) read counts per sample per paired read
-#     hmap = (ans.pivot_table(index=["sample"], columns=["paired_read"], values="paired_read_count")
-#                .replace([np.inf, -np.inf], np.nan)
-#                .fillna(0))
-#     # drop unknown-unknown reads only
-#     hmap = hmap.drop(columns='unknown-unknown')
-#     # grab read counts 
-#     counts = hmap.values
-#     # normalize counts per sample (to address visualization issue) - IGNORE IF USING LOG
-#     summed_counts = counts.sum(axis=1)[:, np.newaxis]
-#     # normalize counts [OPTIONAL]
-#     counts = counts / np.where(summed_counts > 0, summed_counts, 1)
-#     # prepare data for identifying potential contaminants
-#     flag = (ans.groupby('sample')
-#                .agg(uniq_forward_bcodes = ('forward_barcode', get_unique_barcodes),
-#                     uniq_reverse_bcodes = ('reverse_barcode', get_unique_barcodes)))
-
-#     # create boolean column that identifies potential contamination
-#     flag['contamination'] = flag.apply(is_contaminant, axis=1)
-#     # getting only samples with potential contamination, not used later but useful to look at
-#     # contaminants = flag[flag['contamination']==True]
-#     # merge with original data to include the contamination flags
-#     contaminants_flag = (hmap.join(flag, how='inner')['contamination']
-#                              .apply(lambda x: np.where(x==True, counts.max(), counts.min())))
-#     # add contaminant flag column to the read counts
-#     data = np.hstack((counts, contaminants_flag[:, np.newaxis]))
-#     # list of all sample IDs
-#     x = hmap.index.values
-#     # list of all paired reads and an extra flag column for contamination
-#     y = hmap.columns.tolist() + ['contamination']
-#     # heatmap of barcode read counts for all samples
-#     general_hmap = generate_heatmap(data, x, y)
-#     # choosing only samples with potential contaminants
-#     contaminated_data = data[data[:, -1] !=0][:, :-1]
-#     # list of samples with potential contamination only
-#     cont_y = hmap.columns.values[~np.all(contaminated_data == 0, axis=0)].tolist()
-#     # data (read counts) for contaminated samples only
-#     contaminated_data = contaminated_data[:, ~np.all(contaminated_data == 0, axis=0)]
-#     # list of paired reads with potential contamination only
-#     cont_x = hmap.index.values[data[:, -1] !=0].tolist()
-#     # heatmap of barcode read counts for contaminated samples only
-#     cont_hmap = generate_heatmap(contaminated_data, cont_x, cont_y)
-#     # table of barcode read counts for contaminated samples only
-#     cont_table = generate_table(ans, cont_x)
-#     # number of contaminated samples
-#     num_conts = len(cont_x)
-#     # generate html string
-#     html_output = generate_html(general_hmap, cont_hmap, cont_table.to_html(),
-#                                 num_samples, num_conts, expt_pth)
-#     # save report to file
-#     save_html(html_output, out_pth)

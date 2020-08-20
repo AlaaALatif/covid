@@ -308,7 +308,10 @@ rule align_reads_ont:
 # use process substitution
 rule analyse_contamination:
     input: 
-        expand("{out_dir}/barcode_counts/illumina/{sample}.tsv", out_dir = out_dir, sample = df_grp["sample_library"])
+        barcodes= expand("{out_dir}/barcode_counts/illumina/{sample}.tsv", out_dir = out_dir, sample = df_grp["sample_library"]),
+        mapping= "{out_dir}/merged_aligned_bams/illumina/reports/mapped_unmapped_report.tsv",
+        coverage= "{out_dir}/trimmed_bams/illumina/reports/coverage_report.tsv"
+        
     output: 
         "{out_dir}/barcode_counts/illumina/contamination_report.html"
     script: 
