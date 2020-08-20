@@ -25,3 +25,23 @@ conda activate covid
 ```bash
 snakemake --cores [num_cores]
 ```
+
+## Development
+In order to work on the development of the pipeline, the user must ensure that any additional dependencies are captured in the environment file `envs/covid.yaml`. Here are general instructions on how to do so:
+* activate the pipeline's environment 
+```bash
+conda activate covid
+```
+* install any additional dependencies
+```bash
+conda install -c bioconda pokechop
+```
+* Update the environment YAML file with the additional dependencies
+```bash
+conda env export > envs/covid.yaml
+```
+* Update the remote repository with the new YAML file
+```bash
+git add envs/covid.yaml
+git commit -m "added pokechop as a dependency"
+```
