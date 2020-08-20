@@ -63,6 +63,7 @@ rule all:
         "{out_dir}/merged_aligned_bams/illumina/reports/mapped_unmapped_report.tsv".format(out_dir = out_dir),
         "{out_dir}/barcode_counts/illumina/contamination_report.html".format(out_dir = out_dir)
 
+
 rule align_consensus_genomes:
     input:
         "{out_dir}/trimmed_bams/illumina/reports/coverage_report.tsv"
@@ -310,7 +311,5 @@ rule analyse_contamination:
         expand("{out_dir}/barcode_counts/illumina/{sample}.tsv", out_dir = out_dir, sample = df_grp["sample_library"])
     output: 
         "{out_dir}/barcode_counts/illumina/contamination_report.html"
-    conda: 
-        "envs/covid.yaml"
     script: 
         "scripts/analyse_contamination.py"
