@@ -42,14 +42,19 @@ def generate_heatmap(data, x, y, normalize=True):
         # normalize counts per sample (to address visualization issue) - IGNORE IF USING LOG
         summed_counts = counts.sum(axis=1)[:, np.newaxis]
         # normalize counts [OPTIONAL]
-        counts = counts / np.where(summed_counts > 0, summed_counts, 1)
+        counts_normed = counts / np.where(summed_counts > 0, summed_counts, 1)
     # grab column with contaminant flags
     flags = data[:, -1][:, np.newaxis]
     # generate plot
     fig = make_subplots(2,1, shared_xaxes=True)
 
     fig.add_trace(
-     go.Heatmap(z = counts.T, x = x, y = y, coloraxis = "coloraxis"), 2,1)
+     go.Heatmap(z = counts_normed.T, x = x, y = y, hovertext=counts.T, hovertemplate =
+                '<b>Sample</b>: %{y}<br>'+
+                '<b>Barcode</b>: %{x}<br>'+
+                '<b>Count</b>: %{hovertext}<br>'+
+                '<b>Normed Count</b>: %{z:.2f}',
+                hoverinfo='all', coloraxis = "coloraxis"), 2,1)
 
     fig.add_trace(go.Heatmap(z = flags.T, x=x, y=['Contamination'], coloraxis = "coloraxis"),1,1)
     fig.update_layout(coloraxis = {'colorscale':'viridis'}, height=800,
