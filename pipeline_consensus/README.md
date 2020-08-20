@@ -19,7 +19,8 @@ conda activate covid
 ```
 
 ## Usage
-* Specify user's parameters in `config.json` and save the file
+* Ensure that the pipeline's Conda Environment is activated
+* Specify user's data and parameters in `config.json` and save the file
 * Run the pipeline using Snakemake
 ```bash
 snakemake --cores [num_cores]
