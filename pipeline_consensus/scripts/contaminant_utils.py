@@ -36,8 +36,41 @@ def generate_html(general_hmap, cont_hmap, cont_table, scattr_plot, num_samples,
 def save_html(html_output: str, filename: str):
     with open(filename, 'w') as f:
         f.write(html_output)
-        
-        
+
+
+def generate_scatter(df: pd.DataFrame, cont_x: list):
+    df['contaminated'] = 0
+    df.loc[df['SAMPLE'].isin(cont_x), 'contaminated'] = 1
+    cont_df = df.loc[df['contaminated']==1]
+    norm_df = df.loc[df['contaminated']==0]
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=norm_df['mapped ratio'],
+        y=norm_df['COVERAGE'],
+        mode='markers',
+        text=norm_df['SAMPLE'],
+        marker_color='dark blue',
+        name="Not Contaminated"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=cont_df['mapped ratio'],
+        y=cont_df['COVERAGE'],
+        mode='markers',
+        text=cont_df['SAMPLE'],
+        marker_color='yellow',
+        name="Contaminated"
+    ))
+
+    fig.update_layout(title='Coverage versus Mapped Reads Ratio',
+              xaxis_title="Ratio of Mapped Reads",
+              yaxis_title="Coverage",
+              template='plotly',
+              height=800)
+    return fig
+
+
 def generate_heatmap(data, x, y, normalize=True):
     counts = data[:, :-1]
     if normalize:

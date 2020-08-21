@@ -37,17 +37,8 @@ if __name__ == "__main__":
     mapped_df['SAMPLE'] = mapped_df['SAMPLE'].apply(lambda x: x.split('/')[-1].split('_')[0])
     coverage_df = pd.read_csv(coverage_pth, delimiter='\t')
     coverage_df['SAMPLE'] = coverage_df['SAMPLE'].apply(lambda x: x.split('_')[0])
-    ans = pd.merge(mapped_df, coverage_df, on='SAMPLE', how='inner')[['SAMPLE', 'COVERAGE', 'mapped ratio']]
-    scattr_plot = go.Figure(data=go.Scatter(x=ans['mapped ratio'],
-                                y=ans['COVERAGE'],
-                                mode='markers',
-                                text=ans['SAMPLE'])) # hover text goes here
-
-    scattr_plot.update_layout(title='Coverage versus Mapped Reads Ratio',
-                  xaxis_title="Ratio of Mapped Reads",
-                  yaxis_title="Coverage",
-                  template='plotly',
-                  height=800)
+    scattr_df = pd.merge(mapped_df, coverage_df, on='SAMPLE', how='inner')[['SAMPLE', 'COVERAGE', 'mapped ratio']]
+    scattr_plot = generate_scatter(scattr_df, cont_x)
     # generate html string
     html_output = generate_html(general_hmap, cont_hmap, cont_table, scattr_plot,
                                 num_samples, num_conts, out_pth)
