@@ -23,7 +23,7 @@ conda activate covid
 * Specify user's data and parameters in `config.json` and save the file
 * Run the pipeline using Snakemake
 ```bash
-snakemake --cores [num_cores]
+snakemake --cores [num_cores] --use-conda
 ```
 
 ## Development
