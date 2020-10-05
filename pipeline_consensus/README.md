@@ -12,9 +12,22 @@ bash Anaconda3-2020.07-Linux-x86_64.sh
 * iVar (version 1.2.2)
 
 ## Installation
+### Linux
 * create and activate the pipeline's environment
 ```bash
-conda env create -f envs/covid.yaml -n covid
+conda env create -f envs/covid.yml -n covid
+conda activate covid
+```
+### MacOS
+* install HTSlib from source using the [github repo here](https://github.com/samtools/htslib)
+* install iVar from source using the [github repo here](https://github.com/andersen-lab/ivar)
+* install GNU Utils for MacOS using Homebrew
+```bash
+brew install coreutils gnu-sed
+```
+* create and activate the pipeline's environment
+```bash
+conda env create -f envs/covid_macos.yml -n covid
 conda activate covid
 ```
 
