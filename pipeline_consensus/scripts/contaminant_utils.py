@@ -138,6 +138,9 @@ def load_all_data(input_pths: list):
                 .drop_duplicates())
         df['sample'] = sample_pth.basename().split('_')[0]
         ans = pd.concat([ans, df], axis=0)
+    if ans.empty:
+        raise ValueError(f"No barcode read counts were loaded correctly. \
+                         Please inspect files in {input_pths[0].parent}")
     return ans
 
 
