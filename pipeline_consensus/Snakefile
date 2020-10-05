@@ -9,6 +9,7 @@ import re
 
 configfile: "config.json"
 
+inp_dir = config["inp_dir"]
 illumina_reference = config["illumina"]["reference"]
 ref_fasta = config["ref_fasta"]
 gff = config["gff3_file"]
@@ -73,7 +74,7 @@ rule align_consensus_genomes:
     threads: 4
     shell:
         """
-        cat $(awk '$2 >= 70 && $1!="SAMPLE"' {input} | cut -f 1 | cut -f 1 -d . | sed 's|^|{out_dir}/consensus_sequences/illumina/|g' | sed 's/$/.fa/g') > {output[0]}
+        cat $(awk '$2 >= 70 && $1!="SAMPLE"' {input} | cut -f 1 | cut -f 1 -d . | gsed 's|^|{out_dir}/consensus_sequences/illumina/|g' | gsed 's/$/.fa/g') > {output[0]}
         mafft --auto --thread {threads} {output[0]} > {output[1]}
         """
 
@@ -114,6 +115,8 @@ rule call_consensus_illumina:
 rule compute_coverage_stats:
     input:
         expand("{out_dir}/trimmed_bams/illumina/{sample}.stats", out_dir = out_dir, sample = df_grp["sample_library"])
+    params:
+        coverage="{inp_dir}/hCoV19/plot_coverage.gnu".format(inp_dir=inp_dir)
     output:
         report="{out_dir}/trimmed_bams/illumina/reports/coverage_report.tsv",
         fig="{out_dir}/trimmed_bams/illumina/reports/coverage_report.png"
@@ -121,7 +124,7 @@ rule compute_coverage_stats:
         """
         echo -e "SAMPLE\tCOVERAGE\tAVG_DEPTH\tMIN\tMAX\tZERO_DEPTH" > {output.report}
         cat {input} | sort -n -k 2 >> {output.report}
-        gnuplot -e "filename='{output.report}';ofilename='{output.fig}'" ~/code/hCoV19/plot_coverage.gnu
+        gnuplot -e "filename='{output.report}';ofilename='{output.fig}'" {params.coverage}
         """
 
 rule trim_reads_illumina:
@@ -141,7 +144,7 @@ rule trim_reads_illumina:
         ivar trim -e -i {input} -b {params.bed} -p {output.tmpbam} > {log}  # Add -e if nextera used
         samtools sort -T {wildcards.sample}.trim -o {output.bam} {output.tmpbam}
         samtools index {output.bam}
-	/home/gk/code/hCoV19/compute_coverage.sh {output.bam} > {output.cov_stats}
+	scripts/compute_coverage.sh {output.bam} > {output.cov_stats}
 	samtools stats {output.bam} > {output.bam_stats}
         """
 
@@ -163,8 +166,8 @@ rule demultiplex_barcodes:
     output:
         "{out_dir}/barcode_counts/illumina/{sample}.tsv"
     params:
-        forward_barcode_ref="/home/gk/code/hCoV19/db/barcodes/forward_barcodes_combined.fa",
-        reverse_barcode_ref="/home/gk/code/hCoV19/db/barcodes/reverse_barcodes_combined.fa",
+        forward_barcode_ref="{inp_dir}/barcodes/forward_barcodes_combined.fa".format(inp_dir=inp_dir),
+        reverse_barcode_ref="{inp_dir}/barcodes/reverse_barcodes_combined.fa".format(inp_dir=inp_dir),
         barcode_dir="{out_dir}/demultiplexed_barcodes/illumina/{sample}"
     log: "{out_dir}/logs/demultiplex_barcodes/{sample}.log"
     shell:
@@ -172,13 +175,13 @@ rule demultiplex_barcodes:
         mkdir -p {params.barcode_dir}
         cutadapt -O 15 -e 0.1 -g file:{params.forward_barcode_ref} -G file:{params.reverse_barcode_ref} -o {params.barcode_dir}/{{name1}}-{{name2}}.1.fastq.gz -p {params.barcode_dir}/{{name1}}-{{name2}}.2.fastq.gz {input.forward_barcode} {input.reverse_barcode} > {log}
         echo -e "forward_barcode\treverse_barcode\tpaired_read_count" > {output}
-        find {params.barcode_dir} -name "*.fastq.gz" | sort | xargs -n 2 bash -c 'n1=$(basename $0 | sed "s/.1.fastq.gz//g" | sed "s/-/\\t/g");echo -e "${{n1}}\t"$(($(zcat $0 | wc -l)/4))' | sort -k 1 >> {output}
+        find {params.barcode_dir} -name "*.fastq.gz" | sort | xargs -n 2 bash -c 'n1=$(basename $0 | gsed "s/.1.fastq.gz//g" | gsed "s/-/\\t/g");echo -e "${{n1}}\t"$(($(gzcat $0 | wc -l)/4))' | sort -k 1 >> {output}
         """
 
 rule extract_barcode_reads:
     input:
         forward="{out_dir}/merged_fastq/illumina/{sample}_R1.fastq.gz",
-        reverse="{out_dir}/merged_fastq/illumina/{sample}_R2.fastq.gz"
+        revrse="{out_dir}/merged_fastq/illumina/{sample}_R2.fastq.gz"
     output:
         forward_barcode="{out_dir}/merged_fastq/illumina/{sample}_barcode_R1.fastq.gz",
         reverse_barcode="{out_dir}/merged_fastq/illumina/{sample}_barcode_R2.fastq.gz",
@@ -187,10 +190,10 @@ rule extract_barcode_reads:
         tmpbam_name=temp("{out_dir}/demultiplexed_barcodes/illumina/{sample}_barcode.name.bam"),
         depth="{out_dir}/merged_fastq/illumina/depth/{sample}_barcode.depth"
     params:
-        insert_reference="/home/gk/code/hCoV19/db/zeamays"
+        insert_reference="{inp_dir}/zeamays".format(inp_dir=inp_dir)
     shell:
         """
-        bwa mem {params.insert_reference} {input.forward} {input.reverse} | samtools view -F 4 -b > {output.tmpbam}
+        bwa mem {params.insert_reference} {input.forward} {input.revrse} | samtools view -F 4 -b > {output.tmpbam}
         samtools sort -o {output.tmpbam_coord} {output.tmpbam}
         samtools index {output.tmpbam_coord}
         samtools depth -aa -d 0 {output.tmpbam_coord} > {output.depth}
@@ -202,7 +205,7 @@ rule merge_multiple_libraries_illumina:
     input:
         bams = get_bams,
         forward = get_forward,
-        reverse = get_reverse
+        revrse = get_reverse
     output:
         bam="{out_dir}/merged_aligned_bams/illumina/{sample}.sorted.bam",
         stats=temp("{out_dir}/merged_aligned_bams/illumina/{sample}.stats"),
@@ -217,7 +220,7 @@ rule merge_multiple_libraries_illumina:
 	samtools stats {output.tmpbam} > {output.stats}
         samtools view -b -F 4 {output.tmpbam} > {output.bam}
         cat {input.forward} > {output.forward_merged_fastq}
-        cat {input.reverse} > {output.reverse_merged_fastq}
+        cat {input.revrse} > {output.reverse_merged_fastq}
         """
 
 rule align_reads_illumina:

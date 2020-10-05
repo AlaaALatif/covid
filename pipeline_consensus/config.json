@@ -1,14 +1,15 @@
 {
-  "out_dir": "/home/al/analysis/test",
-  "bed_file": "/home/gk/code/hCoV19/db/primers/primers_v3.bed",
-  "gff3_file": "/home/gk/code/hCoV19/db/gff/NC_045512.2.gff3",
-  "ref_fasta": "/home/gk/code/hCoV19/db/NC045512.fasta",
+  "inp_dir": "/Users/al/Documents/scripps/data/test_inputs/",
+  "out_dir": "/Users/al/Documents/scripps/data/test_outputs_v2",
+  "bed_file": "/Users/al/Documents/scripps/data/test_inputs/hCoV19/primers/primers_v3.bed",
+  "gff3_file": "/Users/al/Documents/scripps/data/test_inputs/hCoV19/gff/NC_045512.2.gff3",
+  "ref_fasta": "/Users/al/Documents/scripps/data/test_inputs/hCoV19/NC045512.fasta",
   "library_delimiter": "_",
-  "samples_path": "samples_small.tsv",
+  "samples_path": "/Users/al/Documents/scripps/data/test_inputs/samples.tsv",
   "illumina": {
-    "reference": "/home/gk/code/hCoV19/db/NC045512_bwa"
+    "reference": "/Users/al/Documents/scripps/data/test_inputs/hCoV19/NC045512_bwa"
   },
   "ont": {
-    "reference": "/home/gk/code/hCoV19/db/NC045512"
+    "reference": "/Users/al/Documents/scripps/data/test_inputs/hCoV19/NC045512"
   }
 }
